@@ -32,6 +32,8 @@ class EmployeePaymentEntry(PaymentEntry):
 		force: bool = False,
 		update_ref_details_only_for: list | None = None,
 		reference_exchange_details: dict | None = None,
+		ref_exchange_rate=None
+		
 	) -> None:
 		for d in self.get("references"):
 			if d.allocated_amount:
@@ -65,10 +67,7 @@ class EmployeePaymentEntry(PaymentEntry):
 						continue
 
 					if field == "exchange_rate" or not d.get(field) or force:
-						if self.get("_action") in ("submit", "cancel"):
-							d.db_set(field, value)
-						else:
-							d.set(field, value)
+						d.db_set(field, value)
 
 
 @frappe.whitelist()
