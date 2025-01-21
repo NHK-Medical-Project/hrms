@@ -32,7 +32,7 @@
 				<div v-for="index in firstOfMonth.endOf('M').get('D')">
 					<div
 						class="h-8 w-8 flex rounded-full mx-auto"
-						:class="getEventOnDate(index) && `bg-${colorMap[getEventOnDate(index)]}`"
+						:class="getEventOnDate(index) && colorMap[getEventOnDate(index)]"
 					>
 						<span class="text-gray-800 text-sm font-medium m-auto">
 							{{ index }}
@@ -47,8 +47,8 @@
 			<div class="grid grid-cols-4 mx-2">
 				<div v-for="status in summaryStatuses" class="flex flex-col gap-1">
 					<div class="flex flex-row gap-1 items-center">
-						<span class="rounded full h-3 w-3" :class="`bg-${colorMap[status]}`" />
-						<span class="text-gray-600 text-sm font-medium leading-5"> {{ status }} </span>
+						<span class="rounded full h-3 w-3" :class="colorMap[status]" />
+						<span class="text-gray-600 text-sm font-medium leading-5"> {{ __(status) }} </span>
 					</div>
 					<span class="text-gray-800 text-base font-semibold leading-6 mx-auto">
 						{{ summary[status] || 0 }}
@@ -65,17 +65,19 @@ import { createResource } from "frappe-ui"
 
 const dayjs = inject("$dayjs")
 const employee = inject("$employee")
+const __ = inject("$translate")
 const firstOfMonth = ref(dayjs().date(1).startOf("D"))
 
 const colorMap = {
-	Present: "green-200",
-	"Work From Home": "green-200",
-	"Half Day": "yellow-100",
-	Absent: "red-100",
-	"On Leave": "blue-100",
-	Holiday: "gray-100",
+	Present: "bg-green-300",
+	"Work From Home": "bg-green-300",
+	"Half Day": "bg-yellow-200",
+	Absent: "bg-red-200",
+	"On Leave": "bg-blue-300",
+	Holiday: "bg-gray-300",
 }
 
+// __("Present"), __("Half Day"), __("Absent"), __("On Leave"), __("Work From Home")
 const summaryStatuses = ["Present", "Half Day", "Absent", "On Leave"]
 
 const summary = computed(() => {
@@ -104,7 +106,17 @@ const getEventOnDate = (date) => {
 	return calendarEvents.data[firstOfMonth.value.date(date).format("YYYY-MM-DD")]
 }
 
-const DAYS = ["S", "M", "T", "W", "T", "F", "S"]
+const getFirstLetter = (s) => Array.from(s.trim())[0] // Unicode
+
+const DAYS = [
+	getFirstLetter(__("Sunday")),
+	getFirstLetter(__("Monday")),
+	getFirstLetter(__("Tuesday")),
+	getFirstLetter(__("Wednesday")),
+	getFirstLetter(__("Thursday")),
+	getFirstLetter(__("Friday")),
+	getFirstLetter(__("Saturday")),
+]
 
 //resources
 const calendarEvents = createResource({

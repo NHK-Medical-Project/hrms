@@ -345,7 +345,6 @@ def allocate_earned_leaves():
 
 	for e_leave_type in e_leave_types:
 		leave_allocations = get_leave_allocations(today, e_leave_type.name)
-
 		for allocation in leave_allocations:
 			if not allocation.leave_policy_assignment and not allocation.leave_policy:
 				continue
@@ -461,15 +460,29 @@ def round_earned_leaves(earned_leaves, rounding):
 
 
 def get_leave_allocations(date, leave_type):
-	return frappe.db.sql(
-		"""select name, employee, from_date, to_date, leave_policy_assignment, leave_policy
-		from `tabLeave Allocation`
-		where
-			%s between from_date and to_date and docstatus=1
-			and leave_type=%s""",
-		(date, leave_type),
-		as_dict=1,
+	employee = frappe.qb.DocType("Employee")
+	leave_allocation = frappe.qb.DocType("Leave Allocation")
+	query = (
+		frappe.qb.from_(leave_allocation)
+		.join(employee)
+		.on(leave_allocation.employee == employee.name)
+		.select(
+			leave_allocation.name,
+			leave_allocation.employee,
+			leave_allocation.from_date,
+			leave_allocation.to_date,
+			leave_allocation.leave_policy_assignment,
+			leave_allocation.leave_policy,
+		)
+		.where(
+			(date >= leave_allocation.from_date)
+			& (date <= leave_allocation.to_date)
+			& (leave_allocation.docstatus == 1)
+			& (leave_allocation.leave_type == leave_type)
+			& (employee.status != "Left")
+		)
 	)
+	return query.run(as_dict=1) or []
 
 
 def get_earned_leaves():
@@ -770,9 +783,9 @@ def get_ec_matching_query(
 		ref_rank = frappe.qb.terms.Case().when(ec.employee == common_filters.party, 1).else_(0) + 1
 
 		if exact_match:
-			filters.append(ec.total_sanctioned_amount == common_filters.amount)
+			filters.append(ec.total_amount_reimbursed == common_filters.amount)
 		else:
-			filters.append(ec.total_sanctioned_amount.gt(common_filters.amount))
+			filters.append(ec.total_amount_reimbursed.gt(common_filters.amount))
 	else:
 		ref_rank = ConstantColumn(1)
 
@@ -783,6 +796,7 @@ def get_ec_matching_query(
 		qb.from_(ec)
 		.select(
 			ref_rank.as_("rank"),
+			ConstantColumn("Expense Claim").as_("doctype"),
 			ec.name,
 			ec.total_sanctioned_amount.as_("paid_amount"),
 			ConstantColumn("").as_("reference_no"),

@@ -223,7 +223,7 @@ scheduler_events = {
 	],
 	"hourly_long": [
 		"hrms.hr.doctype.shift_type.shift_type.process_auto_attendance_for_all_shifts",
-		"hrms.hr.doctype.shift_assignment_schedule.shift_assignment_schedule.process_auto_shift_creation",
+		"hrms.hr.doctype.shift_schedule_assignment.shift_schedule_assignment.process_auto_shift_creation",
 	],
 	"daily": [
 		"hrms.controllers.employee_reminders.send_birthday_reminders",
@@ -302,12 +302,14 @@ override_doctype_dashboards = {
 	"Task": "hrms.overrides.dashboard_overrides.get_dashboard_for_project",
 	"Project": "hrms.overrides.dashboard_overrides.get_dashboard_for_project",
 	"Timesheet": "hrms.overrides.dashboard_overrides.get_dashboard_for_timesheet",
+	"Bank Account": "hrms.overrides.dashboard_overrides.get_dashboard_for_bank_account",
 }
 
 # exempt linked doctypes from being automatically cancelled
 #
 # auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
+ignore_links_on_delete = ["PWA Notification"]
 
 # User Data Protection
 # --------------------
